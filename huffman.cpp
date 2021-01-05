@@ -40,14 +40,30 @@ void to_binary_string(unsigned char c, char* buffer)
 
 int main(int argc, char** argv) 
 {
-    /* TODO: READ FROM FILE 
+    /* TODO:
+     *   
+     * - READ FROM FILE
+     * - count characters and construct frequeny vector
+     * - from these results, construct a huffman tree 
+     * - 
      *
+     * 
     */
 
-    map<char, char> codes;
+    map<char, int> frequency;
+    int x = frequency['a'];
+    frequency['a'] = 20;
+    frequency['b'] = 30;
 
-    codes['a'] = 0b0;
-    codes['b'] = 0b00000010;
+    // map<char, vector<bool>> codes = Huffman(frequency);
+    
+    map<char, vector<bool>> codes;
+
+    // a : 0
+    // b : 1 - 0
+    codes['a'].push_back(0);
+    codes['b'].push_back(1);
+    codes['b'].push_back(0);
 
     string sample = "aaaaabbbaabbaabbaabbaaba";
 
@@ -66,16 +82,13 @@ int main(int argc, char** argv)
     vector<int> output;
 
     for (unsigned char c : sample) {
-        
-        // first you need to get the bytes of the code
-        int x = codes[c];
-
-        output.push_back(x);
+        for (auto i = codes['a'].begin(); i != codes['a'].end(); ++i)
+            output.push_back(*i);
     }
 
-    for (int i : output) {
-        cout << i << " ";
-    }
+    // for (int i : output) {
+    //     cout << i << " ";
+    // }
 
     string outputString;
     unsigned char byte;
