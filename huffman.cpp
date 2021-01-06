@@ -6,7 +6,11 @@
 
 #include <stdlib.h>
 
+#include "bitops.h"
+
 using namespace std;
+
+
 
 /*
  * THINGS TO DO:
@@ -51,9 +55,11 @@ int main(int argc, char** argv)
     */
 
     map<char, int> frequency;
-    int x = frequency['a'];
     frequency['a'] = 20;
     frequency['b'] = 30;
+
+    // not important, for debugging purposes
+    // int count;
 
     // map<char, vector<bool>> codes = Huffman(frequency);
     
@@ -62,92 +68,129 @@ int main(int argc, char** argv)
     // a : 0
     // b : 1 - 0
     codes['a'].push_back(0);
-    codes['b'].push_back(1);
-    codes['b'].push_back(0);
-
-    string sample = "aaaaabbbaabbaabbaabbaaba";
+    codes['b'] = vector<bool>{1, 0};
 
     if (argc != 2) {
         cout << "NO INPUT FILE ARGUMENT" << endl;
         exit(1);
     }
 
-    // string input;
-    // ifstream file;
-    // file.open("sample.txt");
-    // file >> input;
-    // file.close();
+    // read the input file requiring compression into a string
+    string input;
+    ifstream file;
+    file.open("sample.txt");
+    if (!file.is_open() ) {
+        cout << "Error opening file" << endl;
+    }
+    file >> input;
+    file.close();
     // cout << input << endl;
 
+    // vector to store the bits after compression
     vector<int> output;
 
-    for (unsigned char c : sample) {
-        for (auto i = codes['a'].begin(); i != codes['a'].end(); ++i)
+    for (unsigned char c : input) {
+        for (auto i = codes[c].begin(); i != codes[c].end(); ++i)
             output.push_back(*i);
     }
 
+    // // check the compressed data 
+    // count = 0;
     // for (int i : output) {
-    //     cout << i << " ";
+    //     cout << i;
+    //     count++;
+    //     if (count % 8 == 0) {
+    //         cout << " ";
+    //     }
     // }
+    // cout << endl;
+    // cout << "num bits = " << output.size() << endl; 
 
-    string outputString;
-    unsigned char byte;
-    int sizeOfByte;
-
-    size_t i = 0;
-    while (i < output.size()) {
-
-        byte = 0;
-        sizeOfByte = 0;
-
-        byte |= output[i++];
-        sizeOfByte++;
-        while (sizeOfByte < 8 && i < output.size()) {
-            byte <<= 1;             // shift once to the left
-            byte |= output[i++];    // OR with new value
-            sizeOfByte++;
-        }
-
-        // if byte is not full, zero pad until full
-        if (sizeOfByte < 8) {
-            byte <<= (8 - sizeOfByte);
-        }
-
-        outputString.push_back(byte);
+    // write compressed data into a file
+    ofstream myfile;
+    myfile.open("res.txt", ios::out);
+    BitWriter fileWriter(myfile);
+    for (bool i : output) {
+        fileWriter.writeBit(i);
     }
+    fileWriter.flush();
+    myfile.close();
 
-
+    // cout << "using bit writer" << endl;
+    cout << "compressed string: ";
+    BitWriter bitWriter(cout);
+    for (bool i : output) {
+        bitWriter.writeBit(i);
+    }
+    bitWriter.flush();
     cout << endl;
+    // cout << "after bit writer" << endl;
 
-    cout << "Compressed result is: " << outputString << endl;
-    cout << "It's size = " << outputString.size() << endl;
 
-    char buffer[8];
-    to_binary_string(outputString[0], buffer);
+    // read compressed file into a string
+    string outputString;
+    ifstream compressed_file;    
+    compressed_file.open("res.txt", ios::in);
+    if (!compressed_file.is_open()) {
+        cout << "Error opening compressed file res.txt" << endl;
+    }
+    compressed_file >> outputString;
+    compressed_file.close();
+
+    // unsigned char byte = 0;
+    // int sizeOfByte = 0;
+    // cout << "and this is while loop " << endl;
+    // size_t i = 0;
+    // int g = output.size();
+    // count = 0;
+    // while (i < output.size()) {
+    // 
+    //     byte = 0;
+    //     sizeOfByte = 0;
+    // 
+    //     byte |= output[i++];
+    //     sizeOfByte++;
+    //     while (sizeOfByte < 8 && i < output.size()) {
+    //         byte <<= 1;             // shift once to the left
+    //         byte |= output[i++];    // OR with new value
+    //         sizeOfByte++;
+    //     }
+    // 
+    //     // if byte is not full, zero pad until full
+    //     if (sizeOfByte < 8) {
+    //         byte <<= (8 - sizeOfByte);
+    //     }
+    // 
+    //     outputString.push_back(byte);
+    //     printf("%d ", byte);
+    //     count++;
+    // }
+    // cout << endl;
+    // cout << "Compressed result is: " << endl << outputString << endl;
+    // cout << "It's size = " << outputString.size() << endl;
+    // cout << "I appended: " << count << "bytes" << endl;     
+
     
-    cout << buffer << endl;
-    for (int i : buffer)
-        cout << i;
-    cout << endl;
+    // cout << buffer << endl;
+    // for (int i : buffer)
+    //     cout << i;
+    // cout << endl;
 
     /*
      * DECODING
-     * 
      * - read a character
-     * 
      * - convert to binary form (itoa(char, buffer, base))
      *   SOLUTION: use my  homebrew brand new function(tm)
-     * 
      * - read leftmost bit 
-     * 
      * - while reading, try to decode
      * -- if it exists, put it on decoded output
      * -- if if doesn't, fetch another bit and check again
-     * 
      */
+    char buffer[8];
+    to_binary_string(outputString[0], buffer);
 
-    int total_characters_to_decode = sample.size();
-    cout << total_characters_to_decode << endl;
+    int total_characters_to_decode = input.size();
+    cout << "Total characters to decode: " << total_characters_to_decode << endl;
 
     // as we go through output, single characters might span more than one byte
     int currentByteFromOutputThatShiftsIntoDecoding = 0;
@@ -165,10 +208,6 @@ int main(int argc, char** argv)
     map<int, char> decoding_codes;
     decoding_codes[0b0] = 'a';
     decoding_codes[0b00000010] = 'b';
-
-    // cout << decoding_codes[0] << endl;
-    // cout << decoding_codes[1] << endl;
-    // cout << (decoding_codes.find(0) == decoding_codes.end()) << endl;
 
     // we gonna put left-most bit into some input
     // not gonna be a simple char because one letter might be coded into
@@ -232,25 +271,28 @@ int main(int argc, char** argv)
         }
     }
 
+    cout << "Input string is: " << endl;
+    cout << input << endl;
+
     cout << "The original string was *drum rolls*:" << endl;
     cout << string(decoded_output.begin(), decoded_output.end()) << endl;
     
-    to_binary_string(outputString[0], buffer);
-    cout << "input 0: "; 
-    for (int i : buffer)
-        cout << i;
-    cout << endl;
+    // to_binary_string(outputString[0], buffer);
+    // cout << "input 0: "; 
+    // for (int i : buffer)
+    //     cout << i;
+    // cout << endl;
 
-    to_binary_string(outputString[1], buffer);
-    cout << "input 1: ";
-    for (int i : buffer)
-        cout << i;
-    cout << endl;    
+    // to_binary_string(outputString[1], buffer);
+    // cout << "input 1: ";
+    // for (int i : buffer)
+    //     cout << i;
+    // cout << endl;    
     
-    to_binary_string(outputString[2], buffer);
-    cout << "input 2: ";
-    for (int i : buffer)
-        cout << i;
-    cout << endl;
+    // to_binary_string(outputString[2], buffer);
+    // cout << "input 2: ";
+    // for (int i : buffer)
+    //     cout << i;
+    // cout << endl;
     return 0;
 }
