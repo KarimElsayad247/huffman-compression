@@ -7,15 +7,14 @@
 #include <stdlib.h>
 
 #include "bitops.h"
+#include "huffmanTree.h"
 
 using namespace std;
-
-
 
 /*
  * THINGS TO DO:
  *  
- * - Read a file
+ * - Read a file    _/
  *  
  * - Create a huffman map from file
  *  
@@ -53,10 +52,38 @@ int main(int argc, char** argv)
      *
      * 
     */
+    // read the input file requiring compression into a string
+    string input;
+    ifstream file;
+    file.open("sample.txt");
+    if (!file.is_open() ) {
+        cout << "Error opening file" << endl;
+    }
+    file >> input;
+    file.close();
+    // cout << input << endl;
 
+    // built the frequency vector
     map<char, int> frequency;
-    frequency['a'] = 20;
-    frequency['b'] = 30;
+    for (char c : input) {
+        frequency[c] += 1;
+    }
+
+    // for (auto i : frequency) {
+    //     cout << i.first << ": " << i.second << endl;
+    // }
+
+    // using the frequency vector, build the haffman tree and get the codes
+    HuffmanTree tree(frequency);
+    map<char, vector<bool>> huffmanBuiltCodes = tree.huffmanCodes();
+
+    for (auto i = huffmanBuiltCodes.begin(); i != huffmanBuiltCodes.end(); ++i) {
+        cout << (i->first) << ": ";
+        for (bool n : i->second) {
+            cout << n;
+        }
+        cout << endl;
+    }
 
     // not important, for debugging purposes
     // int count;
@@ -75,16 +102,7 @@ int main(int argc, char** argv)
         exit(1);
     }
 
-    // read the input file requiring compression into a string
-    string input;
-    ifstream file;
-    file.open("sample.txt");
-    if (!file.is_open() ) {
-        cout << "Error opening file" << endl;
-    }
-    file >> input;
-    file.close();
-    // cout << input << endl;
+
 
     // vector to store the bits after compression
     vector<int> output;
@@ -277,22 +295,5 @@ int main(int argc, char** argv)
     cout << "The original string was *drum rolls*:" << endl;
     cout << string(decoded_output.begin(), decoded_output.end()) << endl;
     
-    // to_binary_string(outputString[0], buffer);
-    // cout << "input 0: "; 
-    // for (int i : buffer)
-    //     cout << i;
-    // cout << endl;
-
-    // to_binary_string(outputString[1], buffer);
-    // cout << "input 1: ";
-    // for (int i : buffer)
-    //     cout << i;
-    // cout << endl;    
-    
-    // to_binary_string(outputString[2], buffer);
-    // cout << "input 2: ";
-    // for (int i : buffer)
-    //     cout << i;
-    // cout << endl;
     return 0;
 }
