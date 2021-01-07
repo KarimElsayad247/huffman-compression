@@ -15,7 +15,6 @@ void BitWriter::writeBit(char bit) {
     // OR with new value
     // shift once to the left
     // since it starts with all 0s, first shift is negligible 
-    int size = bitsWritten.size();
     byte <<= 1; 
     byte |= bit;   
     bitsWritten.push_back(bit); 

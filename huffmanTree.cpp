@@ -49,7 +49,7 @@ Node::Node(int v, Node *left, Node *right)
 
 bool Node::isLeaf() 
 {
-    return (this->left == nullptr);
+    return (this->left == nullptr && this->right == nullptr);
 }
 
 class sortingPredicat {
@@ -93,6 +93,7 @@ HuffmanTree::HuffmanTree(map<char, int> frequency) {
     }
 
     root = nodes.top();
+    currentNodeWhileTraversing = root;
     nodes.pop();
 }
 
@@ -122,8 +123,8 @@ void HuffmanTree::encodeHuffmanNode(Node *node, BitWriter& writer)
 Node *HuffmanTree::readHuffmanNode(BitReader& reader)
 {
     // 1 means the following 8 bits represent a character
-    bool bit = reader.readBit();
-    if (bit == 1) {
+    // bool bit = reader.readBit();
+    if (reader.readBit() == 1) {
         return new Node(0, reader.readByte());
     }
     else {
@@ -142,4 +143,28 @@ void HuffmanTree::buildHeader(BitWriter& writer)
 void HuffmanTree::constructTreeFromHeader(BitReader& reader)
 {
     root = readHuffmanNode(reader);
+    currentNodeWhileTraversing = root;
+}
+
+// basically, if you get 0, go left, if you get 1, go right
+// if you find a character, return true
+bool HuffmanTree::traversWithBitUntilLeafReached(bool bit)
+{
+    if (bit == 0) {
+        currentNodeWhileTraversing = currentNodeWhileTraversing->left;
+        // cout << endl << "left" << endl;
+    }
+    else {
+        currentNodeWhileTraversing = currentNodeWhileTraversing->right;
+        // cout << endl << "right" << endl;
+    }
+    
+    if (currentNodeWhileTraversing->isLeaf()) {
+        decodedCharacter = currentNodeWhileTraversing->c;
+        currentNodeWhileTraversing = root;
+        return true;
+    }
+    else {
+        return false;
+    }
 }
