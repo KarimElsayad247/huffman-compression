@@ -96,3 +96,12 @@ map<char, vector<bool> > HuffmanTree::huffmanCodes()
     return codes;
 }
 
+string HuffmanTree::buildHeader()
+{
+    string header;
+
+
+
+
+    return header;
+}

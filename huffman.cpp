@@ -43,31 +43,63 @@ void to_binary_string(unsigned char c, char* buffer)
 
 int main(int argc, char** argv) 
 {
+    if (argc != 2) {
+        cout << "NO INPUT FILE ARGUMENT" << endl;
+        exit(1);
+    }
+
+    char* filename = argv[1];
+    // not important, for debugging purposes
+    int count;
     /* TODO:
      *   
      * - READ FROM FILE
      * - count characters and construct frequeny vector
      * - from these results, construct a huffman tree 
-     * - 
-     *
-     * 
     */
     // read the input file requiring compression into a string
-    string input;
     ifstream file;
-    file.open("sample.txt");
+    file.open(filename);
     if (!file.is_open() ) {
         cout << "Error opening file" << endl;
     }
-    file >> input;
-    file.close();
-    // cout << input << endl;
+
+    // testing the bit reader
+    // file.open("sample.txt");
+    // if (!file.is_open() ) {
+    //     cout << "Error opening file" << endl;
+    // }
+    // count = 0;
+    // BitReader reader(file);
+    // for (int i = 0; i < 64; ++i) {
+    //     count++;
+    //     cout << reader.readBit() << (count % 8 == 0 ? " ":"");
+    // }
+    // reader.readBit();
+    // for (int i = 0; i < 8; ++i) {
+    //     cout << reader.readByte();
+    // }
+    // cout << endl;
+
+    // // testing bitWriter write byte
+    // ofstream ffff;
+    // ffff.open("hello.txt");
+    // string str = "Hello world";
+    // BitWriter cWriter(ffff);
+    // for (char c : str) {
+    //     cWriter.writeByte(c);
+    //     cout << c;
+    // }
+    // cWriter.flush();
+    // ffff.close();
 
     // built the frequency vector
     map<char, int> frequency;
-    for (char c : input) {
+    char c;
+    while (file.get(c)) {
         frequency[c] += 1;
     }
+    file.close();
 
     // for (auto i : frequency) {
     //     cout << i.first << ": " << i.second << endl;
@@ -77,52 +109,44 @@ int main(int argc, char** argv)
     HuffmanTree tree(frequency);
     map<char, vector<bool>> huffmanBuiltCodes = tree.huffmanCodes();
 
-    for (auto i = huffmanBuiltCodes.begin(); i != huffmanBuiltCodes.end(); ++i) {
-        cout << (i->first) << ": ";
-        for (bool n : i->second) {
-            cout << n;
-        }
-        cout << endl;
-    }
-
-    // not important, for debugging purposes
-    // int count;
-
-    // map<char, vector<bool>> codes = Huffman(frequency);
+    // checking to see if the codes make sense
+    // for (auto i = huffmanBuiltCodes.begin(); i != huffmanBuiltCodes.end(); ++i) {
+    //     cout << (i->first) << ": ";
+    //     for (bool n : i->second) {
+    //         cout << n;
+    //     }
+    //     cout << endl;
+    // }
     
-    map<char, vector<bool>> codes;
 
-    // a : 0
-    // b : 1 - 0
-    codes['a'].push_back(0);
-    codes['b'] = vector<bool>{1, 0};
-
-    if (argc != 2) {
-        cout << "NO INPUT FILE ARGUMENT" << endl;
-        exit(1);
-    }
-
+    // this manually generated code was for testing purposes
+    // map<char, vector<bool>> codes;
+    // codes['a'].push_back(0);
+    // codes['b'] = vector<bool>{1, 0};
 
 
     // vector to store the bits after compression
     vector<int> output;
-
-    for (unsigned char c : input) {
-        for (auto i = codes[c].begin(); i != codes[c].end(); ++i)
+    int numEncodedBytes = 0;
+    file.open(filename);
+    while (file.get(c)) {
+        for (auto i = huffmanBuiltCodes[c].begin(); i != huffmanBuiltCodes[c].end(); ++i)
             output.push_back(*i);
+        numEncodedBytes++;
     }
+    file.close();
 
     // // check the compressed data 
-    // count = 0;
-    // for (int i : output) {
-    //     cout << i;
-    //     count++;
-    //     if (count % 8 == 0) {
-    //         cout << " ";
-    //     }
-    // }
-    // cout << endl;
-    // cout << "num bits = " << output.size() << endl; 
+    count = 0;
+    for (int i : output) {
+        cout << i;
+        count++;
+        if (count % 8 == 0) {
+            cout << " ";
+        }
+    }
+    cout << endl;
+    cout << "num bits = " << output.size() << endl; 
 
     // write compressed data into a file
     ofstream myfile;
@@ -207,7 +231,8 @@ int main(int argc, char** argv)
     char buffer[8];
     to_binary_string(outputString[0], buffer);
 
-    int total_characters_to_decode = input.size();
+    // gotta fix this later
+    int total_characters_to_decode = numEncodedBytes;
     cout << "Total characters to decode: " << total_characters_to_decode << endl;
 
     // as we go through output, single characters might span more than one byte
@@ -225,7 +250,7 @@ int main(int argc, char** argv)
 
     map<int, char> decoding_codes;
     decoding_codes[0b0] = 'a';
-    decoding_codes[0b00000010] = 'b';
+    decoding_codes[0b00000001] = 'b';
 
     // we gonna put left-most bit into some input
     // not gonna be a simple char because one letter might be coded into
@@ -289,8 +314,8 @@ int main(int argc, char** argv)
         }
     }
 
-    cout << "Input string is: " << endl;
-    cout << input << endl;
+    // cout << "Input string is: " << endl;
+    // cout << input << endl;
 
     cout << "The original string was *drum rolls*:" << endl;
     cout << string(decoded_output.begin(), decoded_output.end()) << endl;

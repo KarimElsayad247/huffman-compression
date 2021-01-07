@@ -25,6 +25,7 @@ private:
 public:
     HuffmanTree(std::map<char, int> frequency);
     std::map<char, std::vector<bool>> huffmanCodes();
+    std::string buildHeader();
 };
 
 
