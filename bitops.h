@@ -2,6 +2,7 @@
 #define HUFFMAN_BITOPS_H
 
 #include <iostream>
+#include <vector>
 
 class BitWriter {
 private:
@@ -11,7 +12,8 @@ private:
 
 public:
     BitWriter(std::ostream& os);
-    void writeBit(bool bit);
+    std::vector<int> bitsWritten;
+    void writeBit(char bit);
     void writeByte(char c);
     void flush();
 };

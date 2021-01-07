@@ -6,6 +6,8 @@
 #include <vector>
 #include <list>
 
+#include "bitops.h"
+
 class Node {
 public:
     int val;
@@ -14,6 +16,7 @@ public:
     Node *right;
     Node(int v); 
     Node(int v, unsigned char letter);
+    Node(int v, Node *left, Node *right);
     bool isLeaf();
 };
 
@@ -23,10 +26,14 @@ private:
     std::map<char, std::vector<bool>> codes;
     std::list<bool> single_code;
     void buildCodeMap(Node *root, int depth);
+    void encodeHuffmanNode(Node *node, BitWriter& writer);
+    Node *readHuffmanNode(BitReader& reader);
 public:
+    HuffmanTree();
     HuffmanTree(std::map<char, int> frequency);
     std::map<char, std::vector<bool>> huffmanCodes();
-    std::string buildHeader();
+    void buildHeader(BitWriter& writer);
+    void constructTreeFromHeader(BitReader& reader);
 };
 
 

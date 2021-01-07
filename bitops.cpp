@@ -1,5 +1,6 @@
 // iostream already included
 #include "bitops.h"
+#include <iostream>
 
 using namespace std;
 
@@ -9,13 +10,15 @@ BitWriter::BitWriter(ostream& os) {
     out = &os;  
 }
 
-void BitWriter::writeBit(bool bit) {
+void BitWriter::writeBit(char bit) {
  
     // OR with new value
     // shift once to the left
     // since it starts with all 0s, first shift is negligible 
+    int size = bitsWritten.size();
     byte <<= 1; 
-    byte |= bit;    
+    byte |= bit;   
+    bitsWritten.push_back(bit); 
     sizeOfByte++;
     
     if (sizeOfByte > 7) {
@@ -41,8 +44,11 @@ void BitWriter::flush() {
 
 void BitWriter::writeByte(char c)
 {
+    bool bit; 
     for (int i = 0; i < 8; ++i) {
-        writeBit( c & 0b10000000);
+        bit = c & 0b10000000;
+        writeBit(bit);
+        // cout << bit;
         c <<= 1; // last shift is negligible 
     }
 }
@@ -81,10 +87,11 @@ char BitReader::readByte()
 {
     // basically just read 8 bits
     char result = 0;
-    for (int i = 0; i < 8; ++i) {
+    for (int i = 0; i < 8; i++) {
         result <<= 1;
-        result |= readBit();
+        bool bit = readBit(); 
+        result |= bit;
     }
-    return result;
 
+    return result;
 }

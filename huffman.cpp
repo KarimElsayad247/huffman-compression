@@ -49,6 +49,8 @@ int main(int argc, char** argv)
         exit(1);
     }
 
+    
+
     char* filename = argv[1];
     // not important, for debugging purposes
     int count;
@@ -88,12 +90,29 @@ int main(int argc, char** argv)
     // ffff.open("hello.txt");
     // string str = "Hello world";
     // BitWriter cWriter(ffff);
+    // cWriter.writeBit(0);
+    // cWriter.writeBit(0);
+    // cWriter.writeBit(0);
+    // cWriter.writeBit(1);
     // for (char c : str) {
     //     cWriter.writeByte(c);
-    //     cout << c;
     // }
     // cWriter.flush();
     // ffff.close();
+    // ifstream oooo;
+    // oooo.open("hello.txt");
+    // BitReader cReader(oooo);
+    // cout << endl << "Reading hello" << endl;
+    // cout << cReader.readBit() << endl;
+    // cout << cReader.readBit() << endl;
+    // cout << cReader.readBit() << endl;
+    // cout << cReader.readBit() << endl;
+    // for (int i = 0; i < str.size(); ++i) {
+    //     cout << cReader.readByte();
+    // }
+    // cout << endl;
+    // oooo.close();
+
 
     // build the frequency vector
     map<char, int> frequency;
@@ -108,13 +127,14 @@ int main(int argc, char** argv)
     map<char, vector<bool>> huffmanBuiltCodes = tree.huffmanCodes();
 
     // checking to see if the codes make sense
-    // for (auto i = huffmanBuiltCodes.begin(); i != huffmanBuiltCodes.end(); ++i) {
-    //     cout << (i->first) << ": ";
-    //     for (bool n : i->second) {
-    //         cout << n;
-    //     }
-    //     cout << endl;
-    // }
+    cout << "Initial codes" << endl;
+    for (auto i = huffmanBuiltCodes.begin(); i != huffmanBuiltCodes.end(); ++i) {
+        cout << (i->first) << ": ";
+        for (bool n : i->second) {
+            cout << n;
+        }
+        cout << endl;
+    }
     
     // this manually generated code was for testing purposes (CAN IGNORE)
     // map<char, vector<bool>> codes;
@@ -146,17 +166,43 @@ int main(int argc, char** argv)
 
     ofstream myfile;
     myfile.open("res.huff", ios::out);
+    BitWriter fileWriter(myfile);
 
     // now, construct a header
-
+    tree.buildHeader(fileWriter);
 
     // write compressed data into a file (BODY)
-    BitWriter fileWriter(myfile);
     for (bool i : output) {
         fileWriter.writeBit(i);
     }
     fileWriter.flush();
     myfile.close();
+
+
+    ifstream fileToDecode;
+    fileToDecode.open("res.huff", ios::in);
+    HuffmanTree newTree;
+    BitReader newReader(fileToDecode);
+
+    // cout << "reading bits:" << endl;
+    // for (int i = 0; i < 40; ++i) {
+    //     cout << newReader.readBit();
+    // }
+    // cout << endl;
+
+    newTree.constructTreeFromHeader(newReader);
+
+    map<char, vector<bool>> reconstructed_codes = newTree.huffmanCodes();
+    cout << "reconstructed codes" << endl;
+    for (auto i = reconstructed_codes.begin(); i != reconstructed_codes.end(); ++i) {
+        cout << (i->first) << ": ";
+        for (bool n : i->second) {
+            cout << n;
+        }
+        cout << endl;
+    }
+
+    fileToDecode.close();
 
     // // using bitWriter to write to stdout
     // // cout << "using bit writer" << endl;

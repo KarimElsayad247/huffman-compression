@@ -13,19 +13,16 @@ using namespace std;
 
 void HuffmanTree::buildCodeMap(Node *root, int depth)
 {
-    if (root->left != nullptr) {
+    if (!(root->isLeaf())) {
         single_code.push_back(0);
         buildCodeMap(root->left, depth + 1);
         single_code.pop_back();
-    }
 
-    if(root->right != nullptr) {
         single_code.push_back(1);
         buildCodeMap(root->right, depth + 1);
         single_code.pop_back();
     }
-
-    if (root->isLeaf()) {
+    else {
         codes[root->c] = vector<bool>(single_code.begin(), single_code.end());
     }
 }
@@ -43,9 +40,16 @@ Node::Node(int v, unsigned char letter) {
     right = nullptr;
 }
 
+Node::Node(int v, Node *left, Node *right) 
+{
+    val = v;
+    this->left = left;
+    this->right = right;
+}
+
 bool Node::isLeaf() 
 {
-    return (this->left == nullptr && this->right == nullptr);
+    return (this->left == nullptr);
 }
 
 class sortingPredicat {
@@ -54,6 +58,11 @@ class sortingPredicat {
         return (p1->val > p2->val);
     }
 };
+
+HuffmanTree::HuffmanTree()
+{
+    root = nullptr;
+}
 
 HuffmanTree::HuffmanTree(map<char, int> frequency) {
     
@@ -85,14 +94,6 @@ HuffmanTree::HuffmanTree(map<char, int> frequency) {
 
     root = nodes.top();
     nodes.pop();
-    // sort(nodes.begin(), nodes.end(), soritngPredicat);
-    // int originalSize = nodes.size();
-    // cout << originalSize << endl;
-    // for (int i = 0; i < originalSize ; ++i) {
-    //     cout << nodes.top()->c << ": " << nodes.top()->val << endl;
-    //     nodes.pop();
-    // }
-    // cout << endl;
 }
 
 map<char, vector<bool> > HuffmanTree::huffmanCodes()
@@ -101,12 +102,44 @@ map<char, vector<bool> > HuffmanTree::huffmanCodes()
     return codes;
 }
 
-string HuffmanTree::buildHeader()
+// used to construct the header
+void HuffmanTree::encodeHuffmanNode(Node *node, BitWriter& writer)
 {
-    string header;
+    if (node->isLeaf()) {
+        writer.writeBit(1);
+        // cout << 1;
+        writer.writeByte(node->c);
+        // cout << node->c << endl;
+    }
+    else {
+        writer.writeBit(0);
+        // cout << 0 << endl;
+        encodeHuffmanNode(node->left, writer);
+        encodeHuffmanNode(node->right, writer);
+    }
+}
 
+Node *HuffmanTree::readHuffmanNode(BitReader& reader)
+{
+    // 1 means the following 8 bits represent a character
+    bool bit = reader.readBit();
+    if (bit == 1) {
+        return new Node(0, reader.readByte());
+    }
+    else {
+        Node *leftchild = readHuffmanNode(reader);
+        Node *rightchild = readHuffmanNode(reader);
+        return new Node(0, leftchild, rightchild);
+    }
+}
 
+void HuffmanTree::buildHeader(BitWriter& writer)
+{
+    encodeHuffmanNode(root, writer);
+    cout << endl;
+}
 
-
-    return header;
+void HuffmanTree::constructTreeFromHeader(BitReader& reader)
+{
+    root = readHuffmanNode(reader);
 }
