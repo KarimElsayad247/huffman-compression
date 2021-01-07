@@ -25,7 +25,7 @@ void HuffmanTree::buildCodeMap(Node *root, int depth)
         single_code.pop_back();
     }
 
-    if (root->left == nullptr && root->right == nullptr) {
+    if (root->isLeaf()) {
         codes[root->c] = vector<bool>(single_code.begin(), single_code.end());
     }
 }
@@ -41,6 +41,11 @@ Node::Node(int v, unsigned char letter) {
     c = letter;
     left = nullptr;
     right = nullptr;
+}
+
+bool Node::isLeaf() 
+{
+    return (this->left == nullptr && this->right == nullptr);
 }
 
 class sortingPredicat {

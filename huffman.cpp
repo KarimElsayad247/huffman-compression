@@ -11,8 +11,7 @@
 
 using namespace std;
 
-/*
- * THINGS TO DO:
+/* THINGS TO DO:
  *  
  * - Read a file    _/
  *  
@@ -41,6 +40,8 @@ void to_binary_string(unsigned char c, char* buffer)
     }
 }
 
+// so far programme only takes one argument that is the name 
+// of the file to be compressed 
 int main(int argc, char** argv) 
 {
     if (argc != 2) {
@@ -51,13 +52,14 @@ int main(int argc, char** argv)
     char* filename = argv[1];
     // not important, for debugging purposes
     int count;
-    /* TODO:
-     *   
-     * - READ FROM FILE
-     * - count characters and construct frequeny vector
-     * - from these results, construct a huffman tree 
+    /* TODO: (ALL DONE)
+     * - READ FROM FILE - DONE
+     * - count characters and construct frequeny vector - DONE
+     * - from these results, construct a huffman tree - DONE
     */
-    // read the input file requiring compression into a string
+   
+    // read the input file requiring compression into ~~a string~~ no longer reading into a string
+    // we create an ifstream and iterate through
     ifstream file;
     file.open(filename);
     if (!file.is_open() ) {
@@ -93,17 +95,13 @@ int main(int argc, char** argv)
     // cWriter.flush();
     // ffff.close();
 
-    // built the frequency vector
+    // build the frequency vector
     map<char, int> frequency;
     char c;
     while (file.get(c)) {
         frequency[c] += 1;
     }
     file.close();
-
-    // for (auto i : frequency) {
-    //     cout << i.first << ": " << i.second << endl;
-    // }
 
     // using the frequency vector, build the haffman tree and get the codes
     HuffmanTree tree(frequency);
@@ -118,12 +116,10 @@ int main(int argc, char** argv)
     //     cout << endl;
     // }
     
-
-    // this manually generated code was for testing purposes
+    // this manually generated code was for testing purposes (CAN IGNORE)
     // map<char, vector<bool>> codes;
     // codes['a'].push_back(0);
     // codes['b'] = vector<bool>{1, 0};
-
 
     // vector to store the bits after compression
     vector<int> output;
@@ -136,21 +132,25 @@ int main(int argc, char** argv)
     }
     file.close();
 
-    // // check the compressed data 
-    count = 0;
-    for (int i : output) {
-        cout << i;
-        count++;
-        if (count % 8 == 0) {
-            cout << " ";
-        }
-    }
-    cout << endl;
-    cout << "num bits = " << output.size() << endl; 
+    // // // check the compressed data looks as expected 
+    // count = 0;
+    // for (int i : output) {
+    //     cout << i;
+    //     count++;
+    //     if (count % 8 == 0) {
+    //         cout << " ";
+    //     }
+    // }
+    // cout << endl;
+    // cout << "num bits = " << output.size() << endl; 
 
-    // write compressed data into a file
     ofstream myfile;
-    myfile.open("res.txt", ios::out);
+    myfile.open("res.huff", ios::out);
+
+    // now, construct a header
+
+
+    // write compressed data into a file (BODY)
     BitWriter fileWriter(myfile);
     for (bool i : output) {
         fileWriter.writeBit(i);
@@ -158,27 +158,28 @@ int main(int argc, char** argv)
     fileWriter.flush();
     myfile.close();
 
-    // cout << "using bit writer" << endl;
-    cout << "compressed string: ";
-    BitWriter bitWriter(cout);
-    for (bool i : output) {
-        bitWriter.writeBit(i);
-    }
-    bitWriter.flush();
-    cout << endl;
-    // cout << "after bit writer" << endl;
+    // // using bitWriter to write to stdout
+    // // cout << "using bit writer" << endl;
+    // cout << "compressed string: ";
+    // BitWriter bitWriter(cout);
+    // for (bool i : output) {
+    //     bitWriter.writeBit(i);
+    // }
+    // bitWriter.flush();
+    // cout << endl;
+    // // cout << "after bit writer" << endl;
 
+    // // read compressed file into a string
+    // string outputString;
+    // ifstream compressed_file;    
+    // compressed_file.open("res.txt", ios::in);
+    // if (!compressed_file.is_open()) {
+    //     cout << "Error opening compressed file res.txt" << endl;
+    // }
+    // compressed_file >> outputString;
+    // compressed_file.close();
 
-    // read compressed file into a string
-    string outputString;
-    ifstream compressed_file;    
-    compressed_file.open("res.txt", ios::in);
-    if (!compressed_file.is_open()) {
-        cout << "Error opening compressed file res.txt" << endl;
-    }
-    compressed_file >> outputString;
-    compressed_file.close();
-
+    // writing to file the old way
     // unsigned char byte = 0;
     // int sizeOfByte = 0;
     // cout << "and this is while loop " << endl;
@@ -213,13 +214,7 @@ int main(int argc, char** argv)
     // cout << "I appended: " << count << "bytes" << endl;     
 
     
-    // cout << buffer << endl;
-    // for (int i : buffer)
-    //     cout << i;
-    // cout << endl;
-
-    /*
-     * DECODING
+    /* DECODING (OUTDATED - GONNA USE NEW METHOD TO TRAVERSE TREE)
      * - read a character
      * - convert to binary form (itoa(char, buffer, base))
      *   SOLUTION: use my  homebrew brand new function(tm)
@@ -228,6 +223,10 @@ int main(int argc, char** argv)
      * -- if it exists, put it on decoded output
      * -- if if doesn't, fetch another bit and check again
      */
+
+
+/*  // old way of decoding from when we didn't have a file with a header
+    // or a reader class
     char buffer[8];
     to_binary_string(outputString[0], buffer);
 
@@ -263,7 +262,8 @@ int main(int argc, char** argv)
 
     // remember that buffer? we gonna read more of it if we read all of it
     int bufferBitsShiftetIntoVariable = 0;
-
+*/
+/*  // reading the old way, form a string
     while (decoded_characters < total_characters_to_decode) {
 
         // we gonna read those zeros and ones one by one, put them in thing_to_check_against_codes 
@@ -313,12 +313,12 @@ int main(int argc, char** argv)
             }
         }
     }
-
+*/
     // cout << "Input string is: " << endl;
     // cout << input << endl;
 
-    cout << "The original string was *drum rolls*:" << endl;
-    cout << string(decoded_output.begin(), decoded_output.end()) << endl;
+    // cout << "The original string was *drum rolls*:" << endl;
+    // cout << string(decoded_output.begin(), decoded_output.end()) << endl;
     
     return 0;
 }

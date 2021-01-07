@@ -14,6 +14,7 @@ public:
     Node *right;
     Node(int v); 
     Node(int v, unsigned char letter);
+    bool isLeaf();
 };
 
 class HuffmanTree {
