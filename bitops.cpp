@@ -1,6 +1,12 @@
 // iostream already included
 #include "bitops.h"
 #include <iostream>
+#include <iomanip>
+#include <exception>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 using namespace std;
 
@@ -63,12 +69,35 @@ BitReader::BitReader(istream& is) {
 
 bool BitReader::readBit() {
 
-    // read a byte when we run out of bits to read
-    // also reads at the very start
-    if (bitsRemainingInByte < 1) {
-        in->get(byte);
-        bitsRemainingInByte = 8;
+try
+{
+    if (bytes_remaining < 1) {
+        in->read(input_byte, 10);
+        bytes_remaining = 10;
+        bytes_read++;
     }
+
+    bits_read++;
+    if (bitsRemainingInByte < 1) {
+        byte = input_byte[10 - bytes_remaining];
+        bitsRemainingInByte = 8;
+        bytes_remaining--;
+        // cout << bits_read << endl;
+    }
+}
+catch(const std::exception& e)
+{
+    std::cerr << e.what() << '\n';
+    exit(0);
+}
+
+
+    // // read a byte when we run out of bits to read
+    // // also reads at the very start
+    // if (bitsRemainingInByte < 1) {
+    //     in->get(byte);
+    //     bitsRemainingInByte = 8;
+    // }
 
     // ANDing with rightmost bit gets either 0 or 1
     bool bit = byte & 0b10000000;
@@ -94,3 +123,8 @@ char BitReader::readByte()
 
     return result;
 }
+
+// void BitReader::segfault_sigaction(int signal, siginfo_t *si, void *arg)
+// {
+
+// }
