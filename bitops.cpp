@@ -69,35 +69,38 @@ BitReader::BitReader(istream& is) {
 
 bool BitReader::readBit() {
 
-try
-{
+
     if (bytes_remaining < 1) {
-        in->read(input_byte, 10);
-        bytes_remaining = 10;
-        bytes_read++;
+        if (in->eof()) {
+            this->internal_eof = true;
+        }
+        else {
+            in->read(input_byte, 10);
+            bytes_remaining = 10;
+            bytes_read++;
+        }
     }
 
     bits_read++;
     if (bitsRemainingInByte < 1) {
-        byte = input_byte[10 - bytes_remaining];
-        bitsRemainingInByte = 8;
-        bytes_remaining--;
-        // cout << bits_read << endl;
+        if (!internal_eof) {
+            byte = input_byte[10 - bytes_remaining];
+            bitsRemainingInByte = 8;
+            bytes_remaining--;
+        } 
+        else {
+            // keep going until all data is extracted
+            if (bytes_remaining > 0) {
+                byte = input_byte[10 - bytes_remaining];
+                bitsRemainingInByte = 8;
+                bytes_remaining--;
+            }
+            else {
+                this->eof = true;
+            }
+            // this->eof = true;
+        }
     }
-}
-catch(const std::exception& e)
-{
-    std::cerr << e.what() << '\n';
-    exit(0);
-}
-
-
-    // // read a byte when we run out of bits to read
-    // // also reads at the very start
-    // if (bitsRemainingInByte < 1) {
-    //     in->get(byte);
-    //     bitsRemainingInByte = 8;
-    // }
 
     // ANDing with rightmost bit gets either 0 or 1
     bool bit = byte & 0b10000000;

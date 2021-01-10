@@ -139,6 +139,7 @@ int main(int argc, char** argv)
 
         if (!fileToDecode.is_open()) {
             cout << "error opening file: " << filename << endl;
+            exit(-2);
         }
 
         // string input_from_file;
@@ -185,17 +186,25 @@ int main(int argc, char** argv)
         // cout << endl;
 
         // decode the file
+        ofstream outputFile;
+        string outFileName = filename;
+        int stop = outFileName.find(".huff");
+        string outFileNameNoExtention(outFileName.begin(), outFileName.begin() + stop);
+        outputFile.open(outFileNameNoExtention, ios::out);
+        
         cout << "decoding now: decoded output is: " << endl;
+
         unsigned int numDecodedCharacters = 0;
         int bitsRead = 0;
-        while (numDecodedCharacters < numCharactersExpected) {
+        while (!newReader.eof) {
             if (newTree.traversWithBitUntilLeafReached(newReader.readBit())){
-                cout << newTree.decodedCharacter;
+                outputFile << newTree.decodedCharacter;
                 numDecodedCharacters++;
             }
             bitsRead++;
         }
         fileToDecode.close();
+        outputFile.close();
         cout << endl << bitsRead << endl;
     }
     return 0;

@@ -31,10 +31,11 @@ private:
     int bytes_read = 0;
     char input_byte[10];
     int bytes_remaining = 0;
+    bool internal_eof = false;
 
 public:
     BitReader(std::istream& is);
-    
+    bool eof = false;
     // returns either a 0 or 1, coming from `BitReader::byte`
     bool readBit();
     char readByte();
