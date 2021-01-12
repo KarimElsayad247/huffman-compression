@@ -104,16 +104,19 @@ int main(int argc, char** argv)
         }
         file.close();
 
-        cout << output.size() << endl;
+        cout << numEncodedBytes << endl;
+        int numEncodedBits = output.size();
 
         ofstream myfile;
         string outFileName = filename;
         outFileName += ".huff";
-        myfile.open(outFileName, ios::out);
+        myfile.open(outFileName, ios::binary | ios::out);
         BitWriter fileWriter(myfile);
         
         // the number of characters to expect
         myfile << numEncodedBytes;
+
+
 
         // now, construct a header
         tree.buildHeader(fileWriter);
@@ -169,16 +172,16 @@ int main(int argc, char** argv)
         // we will travers the tree to decode characters
         newTree.constructTreeFromHeader(newReader);
 
-        // // view reconstructed code
-        // cout << "reconstructed codes" << endl;
-        // map<char, vector<bool>> reconstructed_codes = newTree.huffmanCodes();
-        // for (auto i = reconstructed_codes.begin(); i != reconstructed_codes.end(); ++i) {
-        //     cout << (i->first) << ": ";
-        //     for (bool n : i->second) {
-        //         cout << n;
-        //     }
-        //     cout << endl;
-        // }
+        // view reconstructed code
+        cout << "reconstructed codes" << endl;
+        map<char, vector<bool>> reconstructed_codes = newTree.huffmanCodes();
+        for (auto i = reconstructed_codes.begin(); i != reconstructed_codes.end(); ++i) {
+            cout << (i->first) << ": ";
+            for (bool n : i->second) {
+                cout << n;
+            }
+            cout << endl;
+        }
 
         // for (int i = 0; i < 247; ++i) {
         //     cout << newReader.readBit();
@@ -196,7 +199,7 @@ int main(int argc, char** argv)
 
         unsigned int numDecodedCharacters = 0;
         int bitsRead = 0;
-        while (!newReader.eof) {
+        while (numDecodedCharacters < numCharactersExpected) {
             if (newTree.traversWithBitUntilLeafReached(newReader.readBit())){
                 outputFile << newTree.decodedCharacter;
                 numDecodedCharacters++;
