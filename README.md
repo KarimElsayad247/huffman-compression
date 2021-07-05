@@ -6,3 +6,6 @@
 <li><code>-c</code>: compress</li>
 <li><code>-d</code>: decompress</li>
 </ul>
+
+<h2>Intersting remark</h2>
+<p>I had to implement my own bit-level IO functinos. They work pretty well. </p>
