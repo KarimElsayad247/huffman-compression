@@ -3,13 +3,14 @@
 #include <map>
 #include <vector>
 #include <fstream>
-
+#include <chrono>
 #include <stdlib.h>
 
 #include "bitops.h"
 #include "huffmanTree.h"
 
 using namespace std;
+using namespace std::chrono;
 
 /* THINGS TO DO:
  *  
@@ -51,11 +52,14 @@ int main(int argc, char** argv)
         exit(1);
     }  
 
+    // name of file to be decompressed or compressed
     char* filename = argv[2];
-
+    
+    // whether to compress or decompress
     char *flag = argv[1];
 
-    if (flag[1] == 'c') {
+    auto start = high_resolution_clock::now();
+    if (flag[1] == 'c') { // compression
  
         // read the input file requiring compression into ~~a string~~ no longer reading into a string
         // we create an ifstream and iterate through
@@ -77,9 +81,10 @@ int main(int argc, char** argv)
         HuffmanTree tree(frequency);
         map<char, vector<bool>> huffmanBuiltCodes = tree.huffmanCodes();
 
+        // used for printing binary representationg of character
         char buffer[8];
 
-        // // // checking to see if the codes make sense
+        // checking to see if the codes make sense
         cout << "Initial codes" << endl;
         cout << "Byte" << "\t" << "Code" << "\t" << "New code" << endl; 
         for (auto i = huffmanBuiltCodes.begin(); i != huffmanBuiltCodes.end(); ++i) {
@@ -104,8 +109,9 @@ int main(int argc, char** argv)
         }
         file.close();
 
-        cout << numEncodedBytes << endl;
-        int numEncodedBits = output.size();
+        double compression_ration = ((double)output.size() / 8.00) / (double)numEncodedBytes * 100;
+
+        cout << endl << "Compression ration: " << compression_ration << " Percent" << endl;
 
         ofstream myfile;
         string outFileName = filename;
@@ -116,15 +122,8 @@ int main(int argc, char** argv)
         // the number of characters to expect
         myfile << numEncodedBytes;
 
-
-
         // now, construct a header
         tree.buildHeader(fileWriter);
-
-
-        // fileWriter.flush();
-        // myfile.close();
-        // return -1;
 
         // write compressed data into a file (BODY)
         for (bool i : output) {
@@ -133,7 +132,7 @@ int main(int argc, char** argv)
         fileWriter.flush();
         myfile.close();
     }
-    else if (flag[1] == 'd') {
+    else if (flag[1] == 'd') { // decompression
 
         // open the file to decompress and create a BitReader class
         // assiciated with said file
@@ -144,19 +143,6 @@ int main(int argc, char** argv)
             cout << "error opening file: " << filename << endl;
             exit(-2);
         }
-
-        // string input_from_file;
-        // c = 0;
-        // while (!fileToDecode.eof()) { 
-        //     fileToDecode.get(c);
-        //     input_from_file += c;
-        // }
-        
-        // for (char c : input_from_file) {
-        //     cout << c << " ";
-        // }
-        // cout << endl;
-
 
         BitReader newReader(fileToDecode);
         
@@ -172,21 +158,16 @@ int main(int argc, char** argv)
         // we will travers the tree to decode characters
         newTree.constructTreeFromHeader(newReader);
 
-        // view reconstructed code
-        cout << "reconstructed codes" << endl;
-        map<char, vector<bool>> reconstructed_codes = newTree.huffmanCodes();
-        for (auto i = reconstructed_codes.begin(); i != reconstructed_codes.end(); ++i) {
-            cout << (i->first) << ": ";
-            for (bool n : i->second) {
-                cout << n;
-            }
-            cout << endl;
-        }
-
-        // for (int i = 0; i < 247; ++i) {
-        //     cout << newReader.readBit();
+        // // view reconstructed code
+        // cout << "reconstructed codes" << endl;
+        // map<char, vector<bool>> reconstructed_codes = newTree.huffmanCodes();
+        // for (auto i = reconstructed_codes.begin(); i != reconstructed_codes.end(); ++i) {
+        //     cout << (i->first) << ": ";
+        //     for (bool n : i->second) {
+        //         cout << n;
+        //     }
+        //     cout << endl;
         // }
-        // cout << endl;
 
         // decode the file
         ofstream outputFile;
@@ -194,8 +175,6 @@ int main(int argc, char** argv)
         int stop = outFileName.find(".huff");
         string outFileNameNoExtention(outFileName.begin(), outFileName.begin() + stop);
         outputFile.open(outFileNameNoExtention, ios::out);
-        
-        cout << "decoding now: decoded output is: " << endl;
 
         unsigned int numDecodedCharacters = 0;
         int bitsRead = 0;
@@ -208,7 +187,10 @@ int main(int argc, char** argv)
         }
         fileToDecode.close();
         outputFile.close();
-        cout << endl << bitsRead << endl;
+        // cout << endl << bitsRead << endl;
     }
+    auto stop = high_resolution_clock::now(); 
+    auto duration = duration_cast<milliseconds>(stop - start);
+    cout << "Execution Time: " << duration.count() << "ms" << endl; 
     return 0;
 }
